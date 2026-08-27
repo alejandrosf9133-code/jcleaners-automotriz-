@@ -20,6 +20,7 @@ index.html
         .nav-links { display: flex; gap: 30px; list-style: none; align-items: center; }
         .nav-links a { color: var(--white); text-decoration: none; font-weight: 500; transition: color 0.3s; font-size: 0.95rem; }
         .nav-links a:hover { color: var(--accent-light); }
+        .header-actions { display: flex; align-items: center; gap: 20px; }
         .cart-icon { position: relative; cursor: pointer; font-size: 1.3rem; color: var(--white); }
         .cart-count { position: absolute; top: -8px; right: -8px; background: var(--accent); color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; }
         .menu-toggle { display: none; color: white; font-size: 1.5rem; cursor: pointer; }
@@ -128,7 +129,33 @@ index.html
         .feature i { font-size: 2.5rem; color: var(--accent); margin-bottom: 15px; }
         .feature h3 { margin-bottom: 10px; }
         .feature p { color: var(--gray); font-size: 0.9rem; }
-        @media (max-width: 768px) { .nav-links { display: none; } .menu-toggle { display: block; } .hero h1 { font-size: 2rem; } .hero-logo { height: 80px; } .modal-content { grid-template-columns: 1fr; } .checkout-grid { grid-template-columns: 1fr; } .cart-sidebar { width: 100%; right: -100%; } .whatsapp-tooltip { display: none; } }
+        .header-actions { display: flex; align-items: center; gap: 20px; }
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                position: fixed;
+                top: 75px;
+                left: 0;
+                width: 100%;
+                background: var(--primary);
+                flex-direction: column;
+                padding: 20px;
+                gap: 0;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                z-index: 999;
+            }
+            .nav-links.active { display: flex; }
+            .nav-links li { width: 100%; border-bottom: 1px solid #333; }
+            .nav-links li:last-child { border-bottom: none; }
+            .nav-links a { display: block; padding: 15px 0; font-size: 1.1rem; }
+            .menu-toggle { display: block; }
+            .hero h1 { font-size: 2rem; }
+            .hero-logo { height: 80px; }
+            .modal-content { grid-template-columns: 1fr; }
+            .checkout-grid { grid-template-columns: 1fr; }
+            .cart-sidebar { width: 100%; right: -100%; }
+            .whatsapp-tooltip { display: none; }
+        }
         .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--primary); color: white; padding: 15px 30px; border-radius: 50px; z-index: 4000; opacity: 0; transition: all 0.4s; font-weight: 500; }
         .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2500; }
@@ -144,14 +171,21 @@ index.html
     <header>
         <nav class="container">
             <a href="#" class="logo"><img src="logo_jcleaners.png" alt="J Cleaners Automotriz"></a>
-            <ul class="nav-links">
-                <li><a href="#inicio">Inicio</a></li>
-                <li><a href="#productos">Productos</a></li>
-                <li><a href="#nosotros">Nosotros</a></li>
-                <li><a href="#contacto">Contacto</a></li>
-                <li><div class="cart-icon" onclick="toggleCart()"><i class="fas fa-shopping-cart"></i><span class="cart-count" id="cartCount">0</span></div></li>
+            <ul class="nav-links" id="mobileMenu">
+                <li><a href="#inicio" onclick="closeMobileMenu()">Inicio</a></li>
+                <li><a href="#productos" onclick="closeMobileMenu()">Productos</a></li>
+                <li><a href="#nosotros" onclick="closeMobileMenu()">Nosotros</a></li>
+                <li><a href="#contacto" onclick="closeMobileMenu()">Contacto</a></li>
             </ul>
-            <div class="menu-toggle" onclick="toggleMobileMenu()"><i class="fas fa-bars"></i></div>
+            <div class="header-actions">
+                <div class="cart-icon" onclick="toggleCart()">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count" id="cartCount">0</span>
+                </div>
+                <div class="menu-toggle" onclick="toggleMobileMenu()">
+                    <i class="fas fa-bars" id="menuIcon"></i>
+                </div>
+            </div>
         </nav>
     </header>
     <section class="hero" id="inicio">
@@ -258,7 +292,8 @@ index.html
         function selectPayment(el,method){document.querySelectorAll('.payment-method').forEach(p=>p.classList.remove('selected'));el.classList.add('selected');selectedPayment=method}
         function processPayment(){const name=document.getElementById('customerName').value;const phone=document.getElementById('customerPhone').value;const email=document.getElementById('customerEmail').value;const city=document.getElementById('customerCity').value;const address=document.getElementById('customerAddress').value;if(!name||!phone||!email||!city||!address){showToast('Por favor completa todos los campos');return}const total=cart.reduce((sum,item)=>sum+(item.price*item.qty),0);const orderId='JC-'+Date.now();let message='';switch(selectedPayment){case'mercadopago':message='Serás redirigido a MercadoPago para completar tu pago';break;case'payu':message='Serás redirigido a PayU para completar tu pago';break;case'contraentrega':message='¡Pedido confirmado! Paga cuando recibas tu producto';break}const whatsappMessage=`*Nuevo Pedido J Cleaners*%0A%0A*Cliente:* ${name}%0A*Tel:* ${phone}%0A*Ciudad:* ${city}%0A*Dirección:* ${address}%0A%0A*Productos:*%0A${cart.map(item=>`- ${item.name} x${item.qty} = $${(item.price*item.qty).toLocaleString()}`).join('%0A')}%0A%0A*Total:* $${total.toLocaleString()}%0A*Método de pago:* ${selectedPayment}%0A*Orden:* ${orderId}`;window.open(`https://wa.me/573001234567?text=${whatsappMessage}`,'_blank');showToast(message);cart=[];updateCart();closeCheckout()}
         function showToast(msg){const toast=document.getElementById('toast');toast.textContent=msg;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),3000)}
-        function toggleMobileMenu(){document.querySelector('.nav-links').classList.toggle('active')}
+        function toggleMobileMenu(){const menu=document.getElementById('mobileMenu');const icon=document.getElementById('menuIcon');menu.classList.toggle('active');if(menu.classList.contains('active')){icon.classList.remove('fa-bars');icon.classList.add('fa-times')}else{icon.classList.remove('fa-times');icon.classList.add('fa-bars')}}
+        function closeMobileMenu(){const menu=document.getElementById('mobileMenu');const icon=document.getElementById('menuIcon');menu.classList.remove('active');icon.classList.remove('fa-times');icon.classList.add('fa-bars')}
         document.addEventListener('keydown',(e)=>{if(e.key==='Escape'){closeModal();closeCheckout();closeVideoModal();document.getElementById('cartSidebar').classList.remove('active');document.getElementById('overlay').classList.remove('active')}});
         document.querySelectorAll('.modal-overlay').forEach(overlay=>{overlay.addEventListener('click',(e)=>{if(e.target===overlay){if(overlay.id==='productModal')closeModal();if(overlay.id==='checkoutModal')closeCheckout()}})});
         renderProducts();updateCart();
